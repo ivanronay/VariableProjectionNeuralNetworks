@@ -2,11 +2,11 @@ import csv
 import numpy as np
 import random
 import torch
-from data_generator import *
-from wavelets import *
+from VPBase.data_generator import *
+from VPBase.wavelets import *
 import datetime
 from torch.utils.data import DataLoader
-from models import *
+from VPBase.models import *
 import copy
 
 date = datetime.datetime.now()

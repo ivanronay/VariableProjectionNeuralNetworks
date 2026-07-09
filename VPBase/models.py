@@ -6,7 +6,7 @@
 
 import torch
 import torch.nn as nn
-from CWTLayer import *
+from VPBase.CWTLayer import *
 
 
 class VPCWTNN(nn.Module):

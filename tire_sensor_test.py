@@ -1,24 +1,26 @@
+# Basis for this code is taken from the following repository:
+#   https://gitlab.com/AmonAttilaMiklos/1drgwvp/
 #   (C) Ámon Attila Miklós
 #       Eötvös Loránd University,
 #       Department of Numerical Analysis
 #       E-mail: aattila2000@gmail.com
-##  Last modified: 28.05.2024
 
 import numpy as np
-
 import random
 import torch
-from models import *
-from CWTLayer import *
-from data_generator import *
 from torch.utils.data import DataLoader
-from trainer import *
+
+from FFT_Mel.models import *
+from VPBase.models import *
+from VPBase.CWTLayer import *
+from VPBase.data_generator import *
+from VPBase.trainer import *
+from VPBase.utility import *
 
 from statistics import mean, stdev
 from sklearn import preprocessing
 from sklearn.model_selection import StratifiedKFold, KFold
 
-from utility import *
 
 import matplotlib.pyplot as plt
 
@@ -343,9 +345,50 @@ def VPKFoldGridSearch():
                 
                 print("Done")
 
+def FTTSensorTest():
+    # Seed random generators
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+
+    device= "cpu"
+
+    # Load dataset
+    # Data
+    file_name='tire_sensor'
+    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
+
+    # Training related parameters 
+    N = len(dset)
+    signal_length = dset._samples.shape[1]
+    LR = 0.0001
+    BS = 32
+    EP = 100
+
+    # Train/test indeces
+    ### Define DataLoader Object ###
+    M = int(0.8*N)
+    tr_inds = torch.arange(M,device=device)
+    te_inds = torch.arange(M, N,device=device)
+
+    train_subsampler = torch.utils.data.SubsetRandomSampler(tr_inds)
+    test_subsampler = torch.utils.data.SubsetRandomSampler(te_inds)
+
+    trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
+    testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
+
+    # model = FTTClassifier(signal_length, device=device)
+    model = FTTClassifier(signal_length, [20,20,20])
+    loss = torch.nn.BCELoss()
+    optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
+
+    tr_l, tr_a, te_l, te_a, se_1, pos_pred_1, se_0, pos_pred_0 = train(model, trainLoader, testLoader, EP, loss, optimizer, device,tr_inds.shape[0], te_inds.shape[0])
+
+    plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
 
 
 if __name__=="__main__":
     # VPTireSensorTest()
-    VPKfoldTireSensortest()
+    # VPKfoldTireSensortest()
     # VPKFoldGridSearch()
+    FTTSensorTest()
