@@ -17,8 +17,8 @@ from sklearn.utils import shuffle
 def LoadECGData(SHUFFLE=True, ISSVM=False,dataset='balanced_qrs',device=None):
     
     if 'unbalanced_heartbeat' == dataset:    
-        train_data = np.genfromtxt('../data/ecg_unbalanced_ds1_training_01.csv', delimiter=',')
-        test_data = np.genfromtxt('../data/ecg_unbalanced_ds2_testing_01.csv', delimiter=',')
+        train_data = np.genfromtxt('data/ecg_unbalanced_ds1_training_01.csv', delimiter=',')
+        test_data = np.genfromtxt('data/ecg_unbalanced_ds2_testing_01.csv', delimiter=',')
         training_data_size = len(train_data)
     
     if SHUFFLE:
@@ -69,7 +69,7 @@ class ECGData(Dataset):
 '''
 Load tire revolution dataset
 '''
-def LoadTireRevolutions(MEAS_PATH='../data/tire_sens/abnormal_tire_revolutions.mat', FIELD_NAME='abnorm_meas', SPLIT_RATIO=0.8, SHUFFLE=True):
+def LoadTireRevolutions(MEAS_PATH='data/tire_sens/abnormal_tire_revolutions.mat', FIELD_NAME='abnorm_meas', SPLIT_RATIO=0.8, SHUFFLE=True):
     
     data_mat = sio.loadmat(MEAS_PATH)
     data = np.array(data_mat[FIELD_NAME])
@@ -108,7 +108,7 @@ def ZeroPadRows(x, lpad, rpad):
 Create pytorch dataset from loaded tire revolutions
 '''
 class MFASensorRevolutionsData(Dataset):
-    def __init__(self, MEAS_PATH='../data/abnormal_tire_revolutions.mat', FIELD_NAME='abnorm_meas', SPLIT_RATIO=1.0, SHUFFLE=True, add_dim=True, svm=False):
+    def __init__(self, MEAS_PATH='data/abnormal_tire_revolutions.mat', FIELD_NAME='abnorm_meas', SPLIT_RATIO=1.0, SHUFFLE=True, add_dim=True, svm=False):
         
         # Load the data
         _, _, _, _, self._samples, self._labels = LoadTireRevolutions(MEAS_PATH, FIELD_NAME, SPLIT_RATIO, SHUFFLE)
