@@ -1,25 +1,26 @@
+# Basis for this code is taken from the following repository:
+#   https://gitlab.com/AmonAttilaMiklos/1drgwvp/
 #   (C) Ámon Attila Miklós
 #       Eötvös Loránd University,
 #       Department of Numerical Analysis
 #       E-mail: aattila2000@gmail.com
-##  Last modified: 28.05.2024
 
 import numpy as np
 
 import random
 import torch
-from models import *
-from CWTLayer import *
-from data_generator import *
+from VPBase.models import *
+from VPBase.CWTLayer import *
+from VPBase.data_generator import *
 from torch.utils.data import DataLoader
-from wavelets import genfun_morlet
-from trainer import *
+from VPBase.wavelets import genfun_morlet
+from VPBase.trainer import *
 
 from statistics import mean, stdev
 from sklearn import preprocessing
 from sklearn.model_selection import StratifiedKFold
 
-from utility import *
+from VPBase.utility import *
 
 import matplotlib.pyplot as plt
 

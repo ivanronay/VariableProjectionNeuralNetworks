@@ -1,8 +1,9 @@
+# Basis for this code is taken from the following repository:
+#   https://gitlab.com/AmonAttilaMiklos/1drgwvp/
 #   (C) Ámon Attila Miklós
 #       Eötvös Loránd University,
 #       Department of Numerical Analysis
-#       E-mail: ze3vjn@inf.elte.hu
-##  Last modified: 28.05.2024
+#       E-mail: aattila2000@gmail.com
 
 import torch
 

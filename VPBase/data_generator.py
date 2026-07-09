@@ -1,8 +1,9 @@
+# Basis for this code is taken from the following repository:
+#   https://gitlab.com/AmonAttilaMiklos/1drgwvp/
 #   (C) Ámon Attila Miklós
 #       Eötvös Loránd University,
 #       Department of Numerical Analysis
 #       E-mail: aattila2000@gmail.com
-##  Last modified: 28.05.2024
 
 import scipy.io as sio
 import numpy as np
