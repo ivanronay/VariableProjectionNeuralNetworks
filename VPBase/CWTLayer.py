@@ -5,15 +5,9 @@
 #       Department of Numerical Analysis
 #       E-mail: aattila2000@gmail.com
 
-import math
-
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.autograd.function import Function
-from matplotlib import pyplot as plt
-
 
 class vp_layer(nn.Module):
     """Basic Variable Projection (VP) layer class.

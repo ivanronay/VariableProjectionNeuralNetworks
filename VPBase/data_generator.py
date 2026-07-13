@@ -9,10 +9,6 @@ import scipy.io as sio
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from matplotlib import pyplot as plt
-from sklearn import preprocessing
-
-from sklearn.utils import shuffle
 
     
 def LoadECGData(SHUFFLE=True, ISSVM=False,dataset='balanced_qrs',device=None):

@@ -6,25 +6,14 @@
 #       E-mail: aattila2000@gmail.com
 
 import numpy as np
-
 import random
 import torch
+from torch.utils.data import DataLoader
 from VPBase.models import *
 from VPBase.CWTLayer import *
 from VPBase.data_generator import *
-from torch.utils.data import DataLoader
-from VPBase.wavelets import genfun_morlet
 from VPBase.trainer import *
-
-from statistics import mean, stdev
-from sklearn import preprocessing
-from sklearn.model_selection import StratifiedKFold
-
 from VPBase.utility import *
-
-import matplotlib.pyplot as plt
-
-import datetime
 import time 
 import csv
 

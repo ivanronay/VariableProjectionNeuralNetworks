@@ -1,10 +1,9 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 import csv
-import json
 import time
+from pathlib import Path
 from statistics import mean, stdev
 
 def plot_FFT(loader, model, sample_rate=1/1):

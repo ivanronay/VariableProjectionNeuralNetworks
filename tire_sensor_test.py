@@ -5,29 +5,22 @@
 #       Department of Numerical Analysis
 #       E-mail: aattila2000@gmail.com
 
+import time 
+import csv
 import numpy as np
 import random
 import torch
 from torch.utils.data import DataLoader
-
 from FFT_Mel.models import *
 from FFT_Mel.utility import *
 from VPBase.models import *
-from VPBase.CWTLayer import *
 from VPBase.data_generator import *
+from VPBase.CWTLayer import *
 from VPBase.trainer import *
 from VPBase.utility import *
-
 from statistics import mean, stdev
-from sklearn import preprocessing
-from sklearn.model_selection import StratifiedKFold, KFold
+from sklearn.model_selection import KFold
 
-
-import matplotlib.pyplot as plt
-
-import time 
-import csv
-import copy
 
 def VPTireSensorTest():
     # Seed random generators

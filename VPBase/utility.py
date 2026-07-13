@@ -2,12 +2,11 @@ import csv
 import numpy as np
 import random
 import torch
-from VPBase.data_generator import *
-from VPBase.wavelets import *
 import datetime
-from torch.utils.data import DataLoader
-from VPBase.models import *
 import copy
+from VPBase.wavelets import *
+from VPBase.data_generator import *
+from VPBase.models import *
 
 date = datetime.datetime.now()
 date_str = date.strftime("%Y-%m-%d %H:%M")

@@ -6,13 +6,8 @@
 #       E-mail: aattila2000@gmail.com
 
 import math
-
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd.function import Function
-from matplotlib import pyplot as plt
 from numpy.polynomial import polynomial as P
 
 def genfun_morlet(m, n, params, p,r,dtype=torch.float, device=None):
