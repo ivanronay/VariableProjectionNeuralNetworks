@@ -49,17 +49,19 @@ class VPCWTNN(nn.Module):
     
     def add_vp_layer(self, layer):
         self.vp_layers.append(layer)
-
-    def test_mode(self):
-        for i in range(self.vpl_number):
-            psi, _, _ = self.vp_layers[i].ada(self.vp_layers[i].weight)
-            self.vp_layers[i].Phi = psi
-            self.vp_layers[i].Phip = torch.linalg.pinv(psi)
+    
+    def train(self, mode=True):
+        super().train(mode)
+        if mode:
+            for i in range(self.vpl_number):
+                self.vp_layers[i].Phi = None
+                self.vp_layers[i].Phip = None
+        else:
+            for i in range(self.vpl_number):
+                psi, _, _ = self.vp_layers[i].ada(self.vp_layers[i].weight)
+                self.vp_layers[i].Phi = psi
+                self.vp_layers[i].Phip = torch.linalg.pinv(psi)
         
-    def train_mode(self):
-        for i in range(self.vpl_number):
-            self.vp_layers[i].Phi = None
-            self.vp_layers[i].Phip = None
 
     def forward(self, x):
         vplayer = self.vp_layers[0]

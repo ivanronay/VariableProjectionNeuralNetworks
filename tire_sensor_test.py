@@ -62,6 +62,7 @@ def VPTireSensorTest():
     b = 1.0
 
     vp_target = 2 # Target features. 0: coefficients, 1: approximation, 2: residual
+    init_params = init_rgw_tire_sensor(p, r, VP_DIM,-1,1,device)
 
     print(N,input_length)
 
@@ -78,7 +79,7 @@ def VPTireSensorTest():
     testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
 
     # Define model
-    model = create_model([layer,mother_wavelet],input_length,VP_DIM,NR,VP_PEN,vp_target,a,b,p,r,bmin,device=device)
+    model = create_model([layer,mother_wavelet],input_length,VP_DIM,NR,VP_PEN,vp_target,a,b,p,r,bmin,init_params=init_params,device=device)
     model = model.to(device)
 
     ## Plotting ###
@@ -457,7 +458,7 @@ def FFTSensorKFold():
         print()
     
     # Print the output.
-    print('List of possible accuracy:', accuracies)
+    print('\nList of possible accuracy:', accuracies)
     print('\nMaximum Accuracy That can be obtained from this model is:',
         max(accuracies)*100, '%')
     print('\nMinimum Accuracy:',

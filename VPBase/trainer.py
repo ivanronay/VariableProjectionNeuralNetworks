@@ -12,7 +12,6 @@ Training a pytorch model for a single epoch
 '''
 def train_single_epoch(dataloader, model, loss_fn, optimizer,device):
     model.train()
-    model.train_mode()
 
     for _, (X, y) in enumerate(dataloader):
         # Predict
@@ -33,7 +32,6 @@ Test a pytorch model using data from the provided dataloader object
 def test(dataloader, model, loss_fn, size, device,print_to_std=True):
     num_batches = len(dataloader)
     model.eval()
-    model.test_mode()
     test_loss, correct = 0, 0
     TruePos_1, FalsePos_1, FalseNeg_1 = 0, 0, 0
     TruePos_0, FalsePos_0, FalseNeg_0 = 0, 0, 0

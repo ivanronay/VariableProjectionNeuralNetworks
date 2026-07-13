@@ -10,7 +10,8 @@ class FTTClassifier(nn.Module):
         length of the input signal
     layer_params:
         list of integers representing the number of neurons in each fully connected layer.
-        an additional layer with 1 neuron and sigmoid activation is added at the end for binary classification.
+        an additional layer with 1 neuron and sigmoid activation is added at the end
+        for binary classification.
     """
     def __init__(self, signal_length, layer_params):
         super().__init__()
@@ -31,10 +32,3 @@ class FTTClassifier(nn.Module):
         x = torch.cat((x.real, x.imag), dim=1)
         x = self.fully_connected(x)
         return x
-    
-    # train method calls them but they are not needed for this model
-    def train_mode(self):
-        pass
-    
-    def test_mode(self):
-        pass
