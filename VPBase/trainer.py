@@ -66,7 +66,6 @@ def test(dataloader, model, loss_fn, size, device,print_to_std=True):
     if (TruePos_1 + FalsePos_1) != 0 : PosPred_1 = TruePos_1 / (TruePos_1 + FalsePos_1)
     if (TruePos_0 + FalseNeg_0) != 0 : Se_0 = TruePos_0 / (TruePos_0 + FalseNeg_0)
     if (TruePos_0 + FalsePos_0) != 0 : PosPred_0 = TruePos_0 / (TruePos_0 + FalsePos_0)
-    if print_to_std: print(f"Error: \n Accuracy: {(100*correct):>0.3f}%, Avg loss: {test_loss:>8f} \n")
     return test_loss, correct, Se_1, PosPred_1, Se_0, PosPred_0
 
 
@@ -84,10 +83,10 @@ def train(model, train_data_loader, test_data_loader, epochs, loss_fcn, optimize
     pos_pred_0 = []
     
     for ep in range(epochs):
-        if log: print("[EPOCH]: " + str(ep+1) + "/" + str(epochs))
         train_single_epoch(train_data_loader, model, loss_fcn, optimizer,device)
         tr_l, tr_a, _, _, _, _ = test(train_data_loader, model, loss_fcn,tr_size,device, log)
         te_l, te_a, Se_1, PosPred_1, Se_0, PosPred_0 = test(test_data_loader, model, loss_fcn, te_size,device, log)
+        if log: print(f"\r[EPOCH]: {ep+1}/{epochs} Accuracy(train-test): {(100*tr_a):0.2f}%-{(100*te_a):0.2f}%, Avg loss(train-test): {tr_l:4f}-{te_l:4f}", end="", flush=True)
 
         tr_losses.append(tr_l)
         tr_accuracies.append(tr_a)

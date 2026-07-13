@@ -414,8 +414,12 @@ def FFTSensorKFold():
 
     x = dset._samples
     y = dset._labels
+    fold = 1
 
     for train_index, test_index in kfold.split(x, y):
+        print(f"Fold {fold}:")
+        fold += 1
+
         train_subsampler = torch.utils.data.SubsetRandomSampler(train_index)
         test_subsampler = torch.utils.data.SubsetRandomSampler(test_index)
 
@@ -450,6 +454,7 @@ def FFTSensorKFold():
             positive_predictivity_0=pos_pred_0
         )
         fold_rows.append(row)
+        print()
     
     # Print the output.
     print('List of possible accuracy:', accuracies)
