@@ -29,11 +29,8 @@ def plot_FFT(loader, model, sample_rate=1/1):
 def log_fft_fold(
     filename,
     *,
-    run_id,
     dataset_name,
     model_name,
-    fold,
-    n_folds,
     train_size,
     test_size,
     learning_rate,
@@ -56,17 +53,15 @@ def log_fft_fold(
     best_epoch_index = np.argmax(test_accuracy)
 
     row = {
-        "run_id": run_id,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "dataset": dataset_name,
         "model": model_name,
-        "fold": fold,
-        "n_folds": n_folds,
         "train_size": train_size,
         "test_size": test_size,
         "learning_rate": learning_rate,
         "batch_size": batch_size,
         "epochs": epochs,
-        "hidden_layers": " ".join(hidden_layers),
+        "hidden_layers": " ".join(map(str, hidden_layers)),
 
         # Best epoch information
         "best_epoch_index": best_epoch_index,
@@ -84,10 +79,10 @@ def log_fft_fold(
         "class_0_positive_predictivity": positive_predictivity_0[best_epoch_index],
 
         # Full histories
-        "train_loss_history": " ".join(train_loss),
-        "test_loss_history": " ".join(test_loss),
-        "train_accuracy_history": " ".join(train_accuracy),
-        "test_accuracy_history": " ".join(test_accuracy),
+        "train_loss_history": " ".join(map(str, train_loss)),
+        "test_loss_history": " ".join(map(str, test_loss)),
+        "train_accuracy_history": " ".join(map(str, train_accuracy)),
+        "test_accuracy_history": " ".join(map(str, test_accuracy)),
     }
 
     write_header = not output_path.exists() or output_path.stat().st_size == 0
@@ -105,7 +100,6 @@ def log_fft_fold(
 def log_fft_summary(
     filename,
     *,
-    run_id,
     dataset_name,
     model_name,
     fold_rows,
@@ -131,7 +125,6 @@ def log_fft_summary(
 
     row = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "run_id": run_id,
         "dataset": dataset_name,
         "model": model_name,
         "n_folds": len(fold_rows),
@@ -141,7 +134,7 @@ def log_fft_summary(
         "max_test_accuracy": max(accuracies),
         "mean_class_1_sensitivity": mean(class_1_sensitivity),
         "mean_class_1_positive_predictivity": mean(class_1_ppv),
-        "fold_accuracies": json.dumps(accuracies),
+        "fold_accuracies": " ".join(map(str, accuracies)),
     }
 
     write_header = not output_path.exists() or output_path.stat().st_size == 0

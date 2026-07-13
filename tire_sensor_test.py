@@ -410,6 +410,7 @@ def FFTSensorKFold():
     ### Define DataLoader Object ###
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
     accuracies = []
+    fold_rows = []
 
     x = dset._samples
     y = dset._labels
@@ -429,6 +430,26 @@ def FFTSensorKFold():
 
         accuracies.append(max(te_a))
         plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
+        row = log_fft_fold(
+            "logs/training_log_5fold_tire_sensor_fft_folds.csv",
+            dataset_name=file_name,
+            model_name="FTTClassifier",
+            train_size=len(train_index),
+            test_size=len(test_index),
+            learning_rate=LR,
+            batch_size=BS,
+            epochs=EP,
+            hidden_layers=model.layer_params,
+            train_loss=tr_l,
+            train_accuracy=tr_a,
+            test_loss=te_l,
+            test_accuracy=te_a,
+            sensitivity_1=se_1,
+            positive_predictivity_1=pos_pred_1,
+            sensitivity_0=se_0,
+            positive_predictivity_0=pos_pred_0
+        )
+        fold_rows.append(row)
     
     # Print the output.
     print('List of possible accuracy:', accuracies)
@@ -436,29 +457,20 @@ def FFTSensorKFold():
         max(accuracies)*100, '%')
     print('\nMinimum Accuracy:',
         min(accuracies)*100, '%')
-    print('\Mean Accuracy:',
+    print('\nMean Accuracy:',
         mean(accuracies)*100, '%')
     print('\nStandard Deviation is:', stdev(accuracies))
 
-def write_to_log(filename, accuracies, dataset_name, layer, learning_params, tr_l_str, te_l_str, tr_a_str, te_a_str):
-    with open(filename, 'a', newline='') as csvfile:
-        datetime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
-        writer = csv.writer(csvfile)
-        writer.writerow([datetime, dataset_name, layer, learning_params, tr_l_str, te_l_str, tr_a_str, te_a_str])
-        
-        writer.writerow(['List of possible accuracies', 'Maximum Accuracy','Minimum Accuracy', 'Overall Accuracy', 'Standard Deviation'])
-        
-        writer.writerow([
-            ', '.join(map(str, accuracies)),
-            max(accuracies),
-            min(accuracies),
-            mean(accuracies),
-            stdev(accuracies)
-        ])
+    log_fft_summary(
+        "logs/training_log_5fold_tire_sensor_fft.csv",
+        dataset_name=file_name,
+        model_name="FTTClassifier",
+        fold_rows=fold_rows
+    )
 
 if __name__=="__main__":
     # VPTireSensorTest()
     # VPKfoldTireSensortest()
     # VPKFoldGridSearch()
-    FTTSensorTest()
+    # FTTSensorTest()
+    FFTSensorKFold()

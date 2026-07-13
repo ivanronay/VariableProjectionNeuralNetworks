@@ -15,6 +15,7 @@ class FTTClassifier(nn.Module):
     def __init__(self, signal_length, layer_params):
         super().__init__()
         self.fully_connected = nn.Sequential()
+        self.layer_params = layer_params
         # rfft output length = (N//2+1) for real input signals
         # after that we concatenate real and imaginary parts
         n0 = 2 * (signal_length // 2 + 1)
