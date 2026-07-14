@@ -338,7 +338,7 @@ def VPKFoldGridSearch():
                 
                 print("Done")
 
-def FTTSensorTest():
+def FFTSensorKFold(n_splits=5):
     # Seed random generators
     random.seed(0)
     np.random.seed(0)
@@ -352,7 +352,6 @@ def FTTSensorTest():
     dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
 
     # Training related parameters 
-    N = len(dset)
     signal_length = dset._samples.shape[1]
     LR = 0.0001
     BS = 32
@@ -360,49 +359,7 @@ def FTTSensorTest():
 
     # Train/test indeces
     ### Define DataLoader Object ###
-    M = int(0.8*N)
-    tr_inds = torch.arange(M,device=device)
-    te_inds = torch.arange(M, N,device=device)
-
-    train_subsampler = torch.utils.data.SubsetRandomSampler(tr_inds)
-    test_subsampler = torch.utils.data.SubsetRandomSampler(te_inds)
-
-    trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
-    testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
-
-    # model = FTTClassifier(signal_length, device=device)
-    model = FTTClassifier(signal_length, [20,20,20])
-    loss = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
-
-    tr_l, tr_a, te_l, te_a, se_1, pos_pred_1, se_0, pos_pred_0 = train(model, trainLoader, testLoader, EP, loss, optimizer, device,tr_inds.shape[0], te_inds.shape[0])
-
-    plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
-    plot_FFT(trainLoader, model, sample_rate=1/1)
-
-def FFTSensorKFold():
-    # Seed random generators
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
-
-    device= "cpu"
-
-    # Load dataset
-    # Data
-    file_name='tire_sensor'
-    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
-
-    # Training related parameters 
-    N = len(dset)
-    signal_length = dset._samples.shape[1]
-    LR = 0.0001
-    BS = 32
-    EP = 100
-
-    # Train/test indeces
-    ### Define DataLoader Object ###
-    kfold = KFold(n_splits=5, shuffle=True, random_state=0)
+    kfold = KFold(n_splits=n_splits, shuffle=True, random_state=0)
     accuracies = []
     fold_rows = []
 
@@ -420,7 +377,7 @@ def FFTSensorKFold():
         trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
         testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
 
-        model = FTTClassifier(signal_length, [20,20,20])
+        model = FFTClassifier(signal_length, [20,20,20])
         loss = torch.nn.BCELoss()
         optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
 
@@ -429,9 +386,9 @@ def FFTSensorKFold():
         accuracies.append(max(te_a))
         plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
         row = log_fft_fold(
-            "logs/training_log_5fold_tire_sensor_fft_folds.csv",
+            "logs/training_folds.csv",
             dataset_name=file_name,
-            model_name="FTTClassifier",
+            model_name=type(model).__name__,
             train_size=len(train_index),
             test_size=len(test_index),
             learning_rate=LR,
@@ -449,6 +406,8 @@ def FFTSensorKFold():
         )
         fold_rows.append(row)
         print()
+        if n_splits == 1:
+            break
     
     # Print the output.
     print('\nList of possible accuracy:', accuracies)
@@ -461,9 +420,97 @@ def FFTSensorKFold():
     print('\nStandard Deviation is:', stdev(accuracies))
 
     log_fft_summary(
-        "logs/training_log_5fold_tire_sensor_fft.csv",
+        "logs/training_kfold_summary.csv",
         dataset_name=file_name,
-        model_name="FTTClassifier",
+        model_name=type(model).__name__,
+        fold_rows=fold_rows
+    )
+
+def MelSensorKFold(n_mels, n_splits=5):
+    # Seed random generators
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+
+    device= "cpu"
+
+    # Load dataset
+    # Data
+    file_name='tire_sensor'
+    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
+
+    # Training related parameters 
+    signal_length = dset._samples.shape[1]
+    LR = 0.0001
+    BS = 32
+    EP = 200
+
+    # Train/test indeces
+    ### Define DataLoader Object ###
+    kfold = KFold(n_splits=n_splits, shuffle=True, random_state=0)
+    accuracies = []
+    fold_rows = []
+
+    x = dset._samples
+    y = dset._labels
+    fold = 1
+
+    for train_index, test_index in kfold.split(x, y):
+        print(f"Fold {fold}:")
+
+        train_subsampler = torch.utils.data.SubsetRandomSampler(train_index)
+        test_subsampler = torch.utils.data.SubsetRandomSampler(test_index)
+
+        trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
+        testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
+
+        model = MelClassifier(signal_length, [20,20,20], n_mels=n_mels[fold-1])
+        loss = torch.nn.BCELoss()
+        optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
+
+        tr_l, tr_a, te_l, te_a, se_1, pos_pred_1, se_0, pos_pred_0 = train(model, trainLoader, testLoader, EP, loss, optimizer, device,len(train_index), len(test_index))
+
+        accuracies.append(max(te_a))
+        plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
+        row = log_fft_fold(
+            "logs/training_folds.csv",
+            dataset_name=file_name,
+            model_name=type(model).__name__,
+            train_size=len(train_index),
+            test_size=len(test_index),
+            learning_rate=LR,
+            batch_size=BS,
+            epochs=EP,
+            hidden_layers=model.layer_params,
+            train_loss=tr_l,
+            train_accuracy=tr_a,
+            test_loss=te_l,
+            test_accuracy=te_a,
+            sensitivity_1=se_1,
+            positive_predictivity_1=pos_pred_1,
+            sensitivity_0=se_0,
+            positive_predictivity_0=pos_pred_0
+        )
+        fold_rows.append(row)
+        print()
+        if n_splits == 1:
+            break
+        fold += 1
+    
+    # Print the output.
+    print('\nList of possible accuracy:', accuracies)
+    print('\nMaximum Accuracy That can be obtained from this model is:',
+        max(accuracies)*100, '%')
+    print('\nMinimum Accuracy:',
+        min(accuracies)*100, '%')
+    print('\nMean Accuracy:',
+        mean(accuracies)*100, '%')
+    print('\nStandard Deviation is:', stdev(accuracies))
+
+    log_fft_summary(
+        "logs/training_kfold_summary.csv",
+        dataset_name=file_name,
+        model_name=type(model).__name__,
         fold_rows=fold_rows
     )
 
@@ -471,5 +518,5 @@ if __name__=="__main__":
     # VPTireSensorTest()
     # VPKfoldTireSensortest()
     # VPKFoldGridSearch()
-    # FTTSensorTest()
-    FFTSensorKFold()
+    # FFTSensorKFold()
+    MelSensorKFold(n_mels=[20,40,60,80,100], n_splits=5)

@@ -4,6 +4,7 @@ import random
 import torch
 import datetime
 import copy
+import matplotlib.pyplot as plt
 from VPBase.wavelets import *
 from VPBase.data_generator import *
 from VPBase.models import *
