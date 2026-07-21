@@ -23,12 +23,6 @@ from sklearn.model_selection import KFold
 
 
 def VPTireSensorTest():
-    # Seed random generators
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
-
-    device= "cpu"
 
     # Load dataset
     # Data
@@ -119,10 +113,6 @@ def VPTireSensorTest():
 
 
 def VPKfoldTireSensortest():
-    # Seed random generators
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
 
     device= "cpu"
 
@@ -338,25 +328,7 @@ def VPKFoldGridSearch():
                 
                 print("Done")
 
-def FFTSensorKFold(n_splits=5):
-    # Seed random generators
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
-
-    device= "cpu"
-
-    # Load dataset
-    # Data
-    file_name='tire_sensor'
-    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
-
-    # Training related parameters 
-    signal_length = dset._samples.shape[1]
-    LR = 0.0001
-    BS = 32
-    EP = 100
-
+def do_kfold(dset, n_splits, model_generator):
     # Train/test indeces
     ### Define DataLoader Object ###
     kfold = KFold(n_splits=n_splits, shuffle=True, random_state=0)
@@ -365,11 +337,8 @@ def FFTSensorKFold(n_splits=5):
 
     x = dset._samples
     y = dset._labels
-    fold = 1
-
-    for train_index, test_index in kfold.split(x, y):
-        print(f"Fold {fold}:")
-        fold += 1
+    for fold, (train_index, test_index) in enumerate(kfold.split(x, y)):
+        print(f"Fold {fold + 1}:")
 
         train_subsampler = torch.utils.data.SubsetRandomSampler(train_index)
         test_subsampler = torch.utils.data.SubsetRandomSampler(test_index)
@@ -377,7 +346,8 @@ def FFTSensorKFold(n_splits=5):
         trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
         testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
 
-        model = FFTClassifier(signal_length, [20,20,20])
+        # model = MelClassifier(signal_length, [20,20,20], n_mels=n_mels[fold])
+        model = next(model_generator())
         loss = torch.nn.BCELoss()
         optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
 
@@ -409,7 +379,6 @@ def FFTSensorKFold(n_splits=5):
         if n_splits == 1:
             break
     
-    # Print the output.
     print('\nList of possible accuracy:', accuracies)
     print('\nMaximum Accuracy That can be obtained from this model is:',
         max(accuracies)*100, '%')
@@ -426,97 +395,37 @@ def FFTSensorKFold(n_splits=5):
         fold_rows=fold_rows
     )
 
-def MelSensorKFold(n_mels, n_splits=5):
-    # Seed random generators
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)
+def FFTSensorKFold(dset, n_splits=5):
+    do_kfold(dset, n_splits, lambda: FFTClassifier(signal_length, [20,20,20]))
 
-    device= "cpu"
+def MelSensorKFold(dset, n_splits=5):
+    do_kfold(dset, n_splits, create_Mel)
 
-    # Load dataset
-    # Data
-    file_name='tire_sensor'
-    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
+def create_Mel():
+    for n_mels in [20, 40, 60, 80, 100]:
+        model = MelClassifier(signal_length, [20,20,20], n_mels=n_mels)
+        yield model
 
-    # Training related parameters 
-    signal_length = dset._samples.shape[1]
-    LR = 0.0001
-    BS = 32
-    EP = 200
-
-    # Train/test indeces
-    ### Define DataLoader Object ###
-    kfold = KFold(n_splits=n_splits, shuffle=True, random_state=0)
-    accuracies = []
-    fold_rows = []
-
-    x = dset._samples
-    y = dset._labels
-    fold = 1
-
-    for train_index, test_index in kfold.split(x, y):
-        print(f"Fold {fold}:")
-
-        train_subsampler = torch.utils.data.SubsetRandomSampler(train_index)
-        test_subsampler = torch.utils.data.SubsetRandomSampler(test_index)
-
-        trainLoader = DataLoader(dset, batch_size=BS, sampler=train_subsampler)
-        testLoader = DataLoader(dset, batch_size=BS, sampler=test_subsampler)
-
-        model = MelClassifier(signal_length, [20,20,20], n_mels=n_mels[fold-1])
-        loss = torch.nn.BCELoss()
-        optimizer = torch.optim.Adam(params = model.parameters(),lr=LR)
-
-        tr_l, tr_a, te_l, te_a, se_1, pos_pred_1, se_0, pos_pred_0 = train(model, trainLoader, testLoader, EP, loss, optimizer, device,len(train_index), len(test_index))
-
-        accuracies.append(max(te_a))
-        plot_model_loss_acc(tr_l, tr_a, te_l, te_a,EP)
-        row = log_fft_fold(
-            "logs/training_folds.csv",
-            dataset_name=file_name,
-            model_name=type(model).__name__,
-            train_size=len(train_index),
-            test_size=len(test_index),
-            learning_rate=LR,
-            batch_size=BS,
-            epochs=EP,
-            hidden_layers=model.layer_params,
-            train_loss=tr_l,
-            train_accuracy=tr_a,
-            test_loss=te_l,
-            test_accuracy=te_a,
-            sensitivity_1=se_1,
-            positive_predictivity_1=pos_pred_1,
-            sensitivity_0=se_0,
-            positive_predictivity_0=pos_pred_0
-        )
-        fold_rows.append(row)
-        print()
-        if n_splits == 1:
-            break
-        fold += 1
-    
-    # Print the output.
-    print('\nList of possible accuracy:', accuracies)
-    print('\nMaximum Accuracy That can be obtained from this model is:',
-        max(accuracies)*100, '%')
-    print('\nMinimum Accuracy:',
-        min(accuracies)*100, '%')
-    print('\nMean Accuracy:',
-        mean(accuracies)*100, '%')
-    print('\nStandard Deviation is:', stdev(accuracies))
-
-    log_fft_summary(
-        "logs/training_kfold_summary.csv",
-        dataset_name=file_name,
-        model_name=type(model).__name__,
-        fold_rows=fold_rows
-    )
+device= "cpu"
+file_name='tire_sensor'
+LR = 0.0001
+BS = 32
+EP = 200
 
 if __name__=="__main__":
+    # Seed random generators
+    random.seed(0)
+    np.random.seed(0)
+    torch.manual_seed(0)
+
+    # Load dataset
+    dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
+
+    # Training related parameters 
+    signal_length = dset._samples.shape[1]
+
     # VPTireSensorTest()
     # VPKfoldTireSensortest()
     # VPKFoldGridSearch()
-    # FFTSensorKFold()
-    MelSensorKFold(n_mels=[20,40,60,80,100], n_splits=5)
+    # FFTSensorKFold(dset)
+    MelSensorKFold(dset)
