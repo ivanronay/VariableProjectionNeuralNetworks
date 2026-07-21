@@ -11,8 +11,8 @@ import numpy as np
 import random
 import torch
 from torch.utils.data import DataLoader
-from FFT_Mel.models import *
-from FFT_Mel.utility import *
+from VPExtra.models import *
+from VPExtra.utility import *
 from VPBase.models import *
 from VPBase.data_generator import *
 from VPBase.CWTLayer import *
