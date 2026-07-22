@@ -1,5 +1,7 @@
 import torch
 from torch import nn
+import snntorch as snn
+from VPBase import CWTLayer as cwt
 
 class FFTClassifier(nn.Module):
     """
@@ -80,23 +82,26 @@ class CWTClassifierSNN(nn.Module):
     """
     Uses Spiking Neural Network for classification
     """
-    def __init__(self, layer_params, vp_params, beta=0.9):
+    def __init__(self, layer_params, vp_params, frame_size, hop_size, beta=0.9):
         super().__init__()
-        import snntorch as snn
-        from VPBase import CWTLayer as cwt
         self.vp_layer = cwt.vp_layer(vp_params)
         self.layers = nn.Sequential()
         self.layer_params = layer_params
+        self.frame_size = frame_size
+        self.hop_size = hop_size
         
         if vp_params['vp_target'] == 0:
             n0 = vp_params['vp_latent_dim']
         else: 
             n0 = vp_params['input_length']
 
-        for n in layer_params:
+        # Sequential with Leaky layers need init_hidden for all layers and output=True for the last layer
+        for n in layer_params[:-1]:
             self.layers.append(nn.Linear(n0, n))
-            self.layers.append(snn.Leaky(beta=beta))
+            self.layers.append(snn.Leaky(beta=beta, init_hidden=True))
             n0 = n
+        self.layers.append(nn.Linear(n0, layer_params[-1]))
+        self.layers.append(snn.Leaky(beta=beta, init_hidden=True, output=True))
 
     def train(self, mode=True):
         super().train(mode)
@@ -109,9 +114,14 @@ class CWTClassifierSNN(nn.Module):
             self.vp_layer.Phip = torch.linalg.pinv(psi)
 
     def forward(self, x):
-        x = self.vp_layer(x)
-        torch.squeeze(x)
-        if 1 == len(x.shape): x = x.unsqueeze(0) # BS = 1
-        x = self.layers(x)
-        # TODO: implement SNN specific behaviour
-        return x
+        # initialize membrane potential for SNN
+        snn.utils.reset_mem(self.layers)
+
+        frames = x.unfold(1, self.frame_size, self.hop_size) # unfold the input into overlapping frames
+        for t in range(frames.size(1)):
+            frame_t = frames[:, t, :] # [BS, frame_size]
+            x = self.vp_layer(frame_t)
+            torch.squeeze(x)
+            if 1 == len(x.shape): x = x.unsqueeze(0) # BS = 1
+            spk, mem = self.layers(x)
+        return spk

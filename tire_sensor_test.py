@@ -111,7 +111,6 @@ def VPTireSensorTest():
 
     print("Done")
 
-
 def VPKfoldTireSensortest():
 
     device= "cpu"
@@ -232,7 +231,6 @@ def VPKfoldTireSensortest():
     
     
     print("Done")
-
 
 def VPKFoldGridSearch():
     device= "cpu"
@@ -420,8 +418,6 @@ if __name__=="__main__":
 
     # Load dataset
     dset = MFASensorRevolutionsData(SHUFFLE=True, svm=False, add_dim=False)
-
-    # Training related parameters 
     signal_length = dset._samples.shape[1]
 
     # VPTireSensorTest()
