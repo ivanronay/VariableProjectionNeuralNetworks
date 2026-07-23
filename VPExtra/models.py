@@ -123,10 +123,10 @@ class CWTClassifierSNN(nn.Module):
         for t in range(frames.size(2)):
             frame_t = frames[:,:,t, :] # [BS, 1, frame_size]
             x = self.vp_layer(frame_t)
-            torch.squeeze(x)
+            x = torch.squeeze(x)
             if 1 == len(x.shape): x = x.unsqueeze(0) # if BS = 1
             spk, _ = self.layers(x) # using spikes for now
-            spk_rec[t,:] = spk.reshape(x.size(0),1)
+            spk_rec[t,:] = spk
         
         pred = spk_rec.mean(dim=0)
         return pred
