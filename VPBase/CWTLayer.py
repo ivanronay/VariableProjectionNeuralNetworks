@@ -9,6 +9,8 @@ import torch
 import torch.nn as nn
 from torch.autograd.function import Function
 
+EPSILON = 1e-8
+
 class vp_layer(nn.Module):
     """Basic Variable Projection (VP) layer class.
     The output of a single VP operator is forwarded to the subsequent layers.
@@ -151,7 +153,8 @@ class vpfun(Function):
             if ctx.target == 2:
                 jac = -jac
         dy = dy.unsqueeze(-1)
-        res = (x - y_est) / (x ** 2).sum(dim=2, keepdim=True)
+        denominator = (x ** 2).sum(dim=2, keepdim=True)
+        res = torch.where(denominator > EPSILON, (x - y_est) / denominator, torch.zeros_like(x))
         res = res.unsqueeze(-1)
         dp = (jac * dy).mean(dim=0).sum(dim=1) - 2 * \
             ctx.penalty * (jac1 * res).mean(dim=0).sum(dim=1)
