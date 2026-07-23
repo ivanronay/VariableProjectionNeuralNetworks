@@ -23,9 +23,22 @@ class VPCWTNN(nn.Module):
         self.layers = nn.ModuleList()
         self.vpl_number = 1
 
-        self.add_vp_layer(vp_layer(wavegenfun, n_in=input_length, p=p,r=r,b_min=b_min,a=a,b=b,target=vp_target,
-                            n_out=vp_latent_dim, nparams=nparams,
-                            device=device, penalty=penalty, init=init_vp))
+        self.vp_params = {
+        'ada':wavegenfun,
+        'n_in':input_length,
+        'p':p,
+        'r':r,
+        'b_min':b_min,
+        'a':a,
+        'b':b,
+        'target':vp_target,
+        'n_out':vp_latent_dim,
+        'nparams':nparams,
+        'device':device,
+        'penalty':penalty,
+        'init':init_vp}
+
+        self.add_vp_layer(vp_layer(**self.vp_params))
 
         if vp_target == 0:
             n0 = vp_latent_dim
