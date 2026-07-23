@@ -99,10 +99,10 @@ class CWTClassifierSNN(nn.Module):
         # Sequential with Leaky layers need init_hidden for all layers and output=True for the last layer
         for n in layer_params:
             self.layers.append(nn.Linear(n0, n))
-            self.layers.append(snn.Leaky(beta=beta, init_hidden=True))
+            self.layers.append(snn.Leaky(beta=beta, init_hidden=True, threshold=0.1))
             n0 = n
         self.layers.append(nn.Linear(n0, 1))
-        self.layers.append(snn.Leaky(beta=beta, init_hidden=True, output=True))
+        self.layers.append(snn.Leaky(beta=beta, init_hidden=True, output=True, threshold=0.3))
 
     def train(self, mode=True):
         super().train(mode)
@@ -119,14 +119,14 @@ class CWTClassifierSNN(nn.Module):
         utils.reset(self.layers)
 
         frames = x.unfold(2, self.frame_size, self.hop_size) # unfold the input into overlapping frames
-        spk_rec = torch.empty((frames.size(2),x.size(0),1)) # 1 bcs added extra dimension
+        spk_rec = []
         for t in range(frames.size(2)):
             frame_t = frames[:,:,t, :] # [BS, 1, frame_size]
             x = self.vp_layer(frame_t)
             x = torch.squeeze(x)
             if 1 == len(x.shape): x = x.unsqueeze(0) # if BS = 1
             spk, _ = self.layers(x) # using spikes for now
-            spk_rec[t,:] = spk
+            spk_rec.append(spk)
         
-        pred = spk_rec.mean(dim=0)
+        pred = torch.stack(spk_rec, dim=1).mean(dim=1)
         return pred

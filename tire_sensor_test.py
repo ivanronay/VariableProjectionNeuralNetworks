@@ -24,11 +24,11 @@ def do_kfold(dset, n_splits, model_iterator, loss = torch.nn.BCELoss()):
     # Train/test indeces
     ### Define DataLoader Object ###
     kfold = KFold(n_splits=n_splits, shuffle=True, random_state=0)
+    x = dset._samples
+    y = dset._labels
     accuracies = []
     fold_rows = []
 
-    x = dset._samples
-    y = dset._labels
     for fold, (train_index, test_index) in enumerate(kfold.split(x, y)):
         print(f"Fold {fold + 1}:")
 
@@ -89,7 +89,8 @@ def FFTSensorKFold(dset, n_splits=5):
     do_kfold(dset, n_splits, createFFT())
 
 def createFFT():
-    yield FFTClassifier(signal_length, [20,20,20])
+    while True:
+        yield FFTClassifier(signal_length, [20,20,20])
 
 def MelSensorKFold(dset, n_splits=5):
     do_kfold(dset, n_splits, create_Mel())
@@ -116,23 +117,24 @@ def CWT_SNNSensorKFold(dset, n_splits=5):
     a = -5.0
     b = 5.0
 
-    frame_size = 50
-    hop_size = 20
+    frame_size = 100
+    hop_size = 50
 
     vp_target = 2 # Target features. 0: coefficients, 1: approximation, 2: residual
     init_params = init_rgw_tire_sensor(p, r, VP_DIM,-1,1,device)
     dummy_model = create_model([layer,mother_wavelet],frame_size,VP_DIM,NR,VP_PEN,vp_target,a,b,p,r,bmin,init_params,device=device)
     
-    do_kfold(dset, n_splits, createCWT_SNN(dummy_model.vp_params, frame_size, hop_size), loss=nn.CrossEntropyLoss())
+    do_kfold(dset, n_splits, createCWT_SNN(dummy_model.vp_params, frame_size, hop_size))
 
 def createCWT_SNN(vp_params, frame_size, hop_size):
-    yield  CWTClassifierSNN([20,20,20],vp_params,frame_size,hop_size)
+    while True:
+        yield  CWTClassifierSNN([20,20,20],vp_params,frame_size,hop_size)
 
 device= "cpu"
 file_name='tire_sensor'
-LR = 0.0001
-BS = 32
-EP = 200
+LR = 0.001
+BS = 64
+EP = 20
 
 if __name__=="__main__":
     # Seed random generators
